@@ -39,10 +39,29 @@ def edit_distance_manual(str1: str, str2: str) -> int:
                 substitution = dp[i-1][j-1] + 2
                 dp[i][j] = min(deletion, insertion, substitution)
 
-    print("Edit Distance Table:")
-    for row in dp:
-        print(row)
-    print(f"\nFinal Distance between '{str1}' and '{str2}' = {dp[m][n]}")
+    fig, ax = plt.subplots(figsize=(1.4*(n+2), 1.0*(m+2)))
+    ax.axis("off")
+
+    table_data = [[dp[i][j] for j in range(n+1)] for i in range(m+1)]
+    row_labels = ["_"] + list(str1)
+    col_labels = ["_"] + list(str2)
+
+    table = ax.table(cellText=table_data,
+                     rowLabels=row_labels,
+                     colLabels=col_labels,
+                     cellLoc='center',
+                     loc='center')
+    table.scale(1, 1.3)
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+
+    ax.set_title(
+        f"Manual Edit Distance Dynamic Programming Table\nDistance('{str1}', '{str2}') = {dp[m][n]}",
+        fontsize=12,
+        pad=20,
+    )
+    plt.tight_layout()
+    plt.show()
     return dp[m][n]
 
 
@@ -111,7 +130,9 @@ def edit_distance_visual_pro(str1: str, str2: str) -> int:
     operations = operations[::-1]
 
     # --- Visualization ---
-    fig, ax = plt.subplots(figsize=(1.7*(n+2), 1.4*(m+2)))
+    fig = plt.figure(figsize=(1.7*(n+2), 1.6*(m+3)))
+    gs = fig.add_gridspec(2, 1, height_ratios=[3, 1.2])
+    ax = fig.add_subplot(gs[0, 0])
     im = ax.imshow(dp, cmap=plt.cm.Blues, origin="upper")
 
     # Arrows + colored labels
@@ -150,19 +171,34 @@ def edit_distance_visual_pro(str1: str, str2: str) -> int:
     ax.set_ylabel("Source (str1)", fontsize=11)
     ax.set_title("Edit Distance Heatmap with Colored Arrows & Character Backtrace", fontsize=13)
     plt.colorbar(im, ax=ax, label="Cost Value")
+
+    # Alignment summary table
+    ax_table = fig.add_subplot(gs[1, 0])
+    ax_table.axis("off")
+    total_cost = 0
+    table_rows = []
+    for op, a, b in operations:
+        cost = 0 if op == "match" else 2 if op == "sub" else 1
+        total_cost += cost
+        table_rows.append([op, a, b, cost])
+
+    if table_rows:
+        table = ax_table.table(
+            cellText=table_rows,
+            colLabels=["Operation", "From", "To", "Cost"],
+            cellLoc="center",
+            loc="center",
+        )
+        table.auto_set_font_size(False)
+        table.set_fontsize(11)
+        table.scale(1, 1.3)
+
+    summary_text = f"Final Edit Distance = {dp[m, n]} (Total Cost = {total_cost})"
+    ax_table.text(0.5, 0.95, "Alignment Operations", ha="center", va="top", fontsize=12, fontweight="bold")
+    ax_table.text(0.5, 0.1, summary_text, ha="center", va="bottom", fontsize=11)
+
     plt.tight_layout()
     plt.show()
-
-    # Print alignment operations
-    print("Alignment Operations:")
-    print(f"{'Op':10} {'From':10} {'To':10}")
-    print("-"*30)
-    total_cost = 0
-    for op, a, b in operations:
-        cost = 0 if op=="match" else 2 if op=="sub" else 1
-        total_cost += cost
-        print(f"{op:10} {a:10} {b:10} (cost={cost})")
-    print(f"\n✅ Final Edit Distance = {dp[m,n]} (Total Cost = {total_cost})")
 
     return dp[m,n]
 
@@ -171,8 +207,5 @@ def edit_distance_visual_pro(str1: str, str2: str) -> int:
 # 3️⃣ Example Runner
 # ==========================================================
 if __name__ == "__main__":
-    print("Manual Test:")
     edit_distance_manual("kitten", "sitting")
-
-    print("\nVisual Test:")
     edit_distance_visual_pro("kitten", "sitting")
