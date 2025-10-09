@@ -28,7 +28,9 @@ from matplotlib.patches import Patch, Rectangle
 __all__ = [
     "EditOperation",
     "EditDistanceResult",
+    "LibraryDistanceCheck",
     "compute_edit_distance",
+    "compute_library_distance",
     "plot_manual_table",
     "plot_visual_walkthrough",
     "plot_operations_table",
@@ -103,6 +105,27 @@ class EditDistanceResult:
         return 1.0 - (self.distance / denominator)
 
 
+@dataclass(frozen=True)
+class LibraryDistanceCheck:
+    """Summary of an external-library verification run."""
+
+    library_name: str
+    distance: int | None
+    similarity_score: float | None
+    detail: str
+    succeeded: bool
+
+    @property
+    def formatted_distance(self) -> str:
+        return "N/A" if self.distance is None else str(self.distance)
+
+    @property
+    def formatted_similarity(self) -> str:
+        if self.similarity_score is None:
+            return "N/A"
+        return f"{self.similarity_score:.2f}"
+
+
 def compute_edit_distance(
     source: str,
     target: str,
@@ -171,6 +194,55 @@ def compute_edit_distance(
         insertion_cost=insertion_cost,
         deletion_cost=deletion_cost,
         substitution_cost=substitution_cost,
+    )
+
+
+def compute_library_distance(
+    source: str,
+    target: str,
+    *,
+    insertion_cost: int = 1,
+    deletion_cost: int = 1,
+    substitution_cost: int = 2,
+) -> LibraryDistanceCheck:
+    """Run an external reference implementation when available.
+
+    The classroom exercises rely on weighted costs (insertion/deletion = 1,
+    substitution = 2).  ``textdistance`` exposes a Levenshtein variant that can
+    honour those weights, so we prefer it when present.  If the dependency is not
+    installed, the function falls back to a bundled weighted implementation so
+    the demo can still display a comparison and highlight that the external
+    library is missing.
+    """
+
+    denominator = max(len(source), len(target), 1)
+    weights = (insertion_cost, deletion_cost, substitution_cost)
+
+    try:
+        import textdistance  # type: ignore[import]
+    except ImportError:
+        fallback_distance = _weighted_levenshtein(source, target, weights)
+        similarity = 1.0 - (fallback_distance / denominator)
+        return LibraryDistanceCheck(
+            library_name="textdistance (fallback)",
+            distance=fallback_distance,
+            similarity_score=similarity,
+            detail=(
+                "textdistance not installed; using bundled weighted Levenshtein "
+                "to illustrate the expected outcome."
+            ),
+            succeeded=False,
+        )
+
+    algorithm = textdistance.Levenshtein(weights=weights)
+    distance = int(algorithm.distance(source, target))
+    similarity = 1.0 - (distance / denominator)
+    return LibraryDistanceCheck(
+        library_name="textdistance.Levenshtein",
+        distance=distance,
+        similarity_score=similarity,
+        detail="Computed with textdistance.Levenshtein using custom weights.",
+        succeeded=True,
     )
 
 
@@ -639,3 +711,29 @@ def edit_distance_visual_pro(str1: str, str2: str, *, show: bool = True) -> int:
     result = compute_edit_distance(str1, str2)
     plot_visual_walkthrough(result, show=show)
     return result.distance
+
+
+def _weighted_levenshtein(
+    source: str, target: str, weights: Tuple[int, int, int]
+) -> int:
+    """Reference implementation mirroring ``textdistance`` weighting."""
+
+    ins_cost, del_cost, sub_cost = weights
+    m, n = len(source), len(target)
+    dp = np.zeros((m + 1, n + 1), dtype=int)
+    for i in range(1, m + 1):
+        dp[i, 0] = i * del_cost
+    for j in range(1, n + 1):
+        dp[0, j] = j * ins_cost
+
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if source[i - 1] == target[j - 1]:
+                dp[i, j] = dp[i - 1, j - 1]
+            else:
+                deletion = dp[i - 1, j] + del_cost
+                insertion = dp[i, j - 1] + ins_cost
+                substitution = dp[i - 1, j - 1] + sub_cost
+                dp[i, j] = min(deletion, insertion, substitution)
+
+    return int(dp[-1, -1])

@@ -3,7 +3,9 @@
 from .edit_distance_tools import (
     EditDistanceResult,
     EditOperation,
+    LibraryDistanceCheck,
     compute_edit_distance,
+    compute_library_distance,
     edit_distance_manual,
     edit_distance_visual_pro,
     plot_manual_table,
@@ -14,7 +16,9 @@ from .edit_distance_tools import (
 __all__ = [
     "EditDistanceResult",
     "EditOperation",
+    "LibraryDistanceCheck",
     "compute_edit_distance",
+    "compute_library_distance",
     "edit_distance_manual",
     "edit_distance_visual_pro",
     "plot_manual_table",
