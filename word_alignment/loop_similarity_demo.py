@@ -145,15 +145,16 @@ def _plot_library_comparison(
     )
 
     if library_check.distance is not None:
-        match_symbol = (
-            "✅" if library_check.distance == result.distance else "⚠️"
-        )
+        if library_check.distance == result.distance:
+            status_label = "[MATCH]"
+        else:
+            status_label = "[REVIEW]"
         match_line = (
-            f"{match_symbol} Distance comparison"
+            f"{status_label} Distance comparison"
             f" → manual {result.distance} vs library {library_check.distance}"
         )
     else:
-        match_line = "⚠️ Library distance unavailable"
+        match_line = "[INFO] Library distance unavailable"
 
     library_lines = [
         f"Library Check ({library_check.library_name}):",

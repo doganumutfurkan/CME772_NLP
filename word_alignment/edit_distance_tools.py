@@ -368,6 +368,16 @@ def plot_manual_table(
     table.auto_set_font_size(False)
     table.set_fontsize(11)
 
+    # Emphasise the leading row labels so the source characters remain legible
+    # even when the table becomes large.  Matplotlib stores row headers at
+    # column ``-1`` for each data row, so we can selectively tweak their text
+    # properties without affecting the DP grid itself.
+    for (row_idx, col_idx), cell in table.get_celld().items():
+        if col_idx == -1:
+            cell.set_text_props(fontsize=13, fontweight="bold")
+        elif row_idx == -1:
+            cell.set_text_props(fontweight="bold")
+
     ax.set_title(
         (
             "Manual Edit Distance Dynamic Programming Table\n"
