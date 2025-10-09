@@ -57,3 +57,4 @@ The script will not terminate until all figures are closed, allowing you to paus
 ## Related Documents
 
 * [study.md](./study.md): Concept summary, code flow, and example solutions.
+* [çalışma_notları.md](./çalışma_notları.md): Konsept özeti, kod akışı ve örnek çözümler.
