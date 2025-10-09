@@ -1,76 +1,58 @@
-# Word Alignment & Edit Distance Modülü
+# Word Alignment & Edit Distance Module
 
-Bu klasör, derslerde elle doldurulan edit distance tablolarını yeniden üretmek ve
-süreci görsel olarak açıklamak için hazırlanmış araçları içerir. Görseller hem
-Dinamik Programlama (DP) matrisini hem de backtrace adımlarını derslerdeki
-"sağ üstten sol alta" anlatımıyla sunar.
+This folder contains tools designed to reproduce the edit distance tables manually filled during lectures and to visualize the process. The visuals present both the Dynamic Programming (DP) matrix and the backtrace steps, following the classroom-style explanation from the top-right to the bottom-left.
 
-## Dosya Özeti
+## File Summary
 
-- **`edit_distance_tools.py`** – Edit distance hesabını yapan veri sınıfları,
-  DP matrisini ve backtrace’i oluşturan yardımcı fonksiyonlar, ayrıca görselleri
-  üreten yüksek seviyeli arabirimler.
-- **`loop_similarity_demo.py`** – Döngü odaklı anlatımı, manuel tabloyu ve
-  kütüphane doğrulamasını arka arkaya gösteren örnek script.
-- **`__init__.py`** – Modülün dışarı açtığı sınıf ve fonksiyonların kısayol
-  importlarını içerir.
-- **`study.md`** – Edit distance kavramını, kullanılan kodları ve örnekleri
-  adım adım açıklayan çalışma rehberi.
+* **`edit_distance_tools.py`** – Data classes for computing edit distance, helper functions for generating the DP matrix and backtrace, and high-level interfaces for producing visual outputs.
+* **`loop_similarity_demo.py`** – Example script demonstrating the loop-based explanation, manual table, and library validation sequentially.
+* **`__init__.py`** – Contains shortcut imports for the classes and functions exposed by the module.
+* **`study.md`** – A study guide explaining the edit distance concept, related code, and examples step by step.
 
-## Kurulum
+## Installation
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows için: .venv\\Scripts\\activate
-pip install -r requirements.txt  # Eğer toplu bağımlılık dosyası yoksa aşağıdaki bireysel kurulumları uygulayın
+source .venv/bin/activate  # For Windows: .venv\\Scripts\\activate
+pip install -r requirements.txt  # If there is no requirements file, install individually:
 pip install matplotlib numpy textdistance
 ```
 
-> `textdistance` isteğe bağlıdır. Script, kütüphane bulunmazsa dahili yedek
-> fonksiyonla hesap yapmaya devam eder.
+> `textdistance` is optional. If the library is not available, the script continues using an internal fallback implementation.
 
-## Demo Nasıl Çalıştırılır?
+## How to Run the Demo
 
 ```bash
 python -m word_alignment.loop_similarity_demo
 ```
 
-Script şu sıralamayla Matplotlib pencereleri açar:
+The script opens Matplotlib windows in the following order:
 
-1. **DP Heatmap** – Hücre değerleri, yön bilgisi ve backtrace yolu sağ üstten
-   sol alta doğru vurgulanır.
-2. **Manuel Tablo** – Derslerdeki gibi kelimeler sol alt köşeyi referans alır,
-   her satır adımının açıklaması tabloda yer alır.
-3. **Kütüphane Karşılaştırması** – Manuel sonuç ile `textdistance`
-   kütüphanesinden gelen sonuç yan yana gösterilir.
+1. **DP Heatmap** – Cell values, direction information, and backtrace path are highlighted from top-right to bottom-left.
+2. **Manual Table** – Similar to classroom examples, words align to the lower-left corner, and each step explanation appears in the table.
+3. **Library Comparison** – Displays the manual result side by side with the output from the `textdistance` library.
 
-Tüm figürler kapatılmadan script sonlanmaz; böylece anlatımı durdurarak not
-alabilirsiniz.
+The script will not terminate until all figures are closed, allowing you to pause and take notes.
 
-## Özelleştirme
+## Customization
 
-- `compute_edit_distance` fonksiyonuna farklı kelimeler ve maliyetler vererek
-  yeni tablolar oluşturun:
+* Create new tables by passing different words and costs to the `compute_edit_distance` function:
+
   ```python
   from word_alignment.edit_distance_tools import compute_edit_distance
 
   result = compute_edit_distance("flaw", "lawn", substitution_cost=1)
   ```
-- Görselleri dosyaya aktarmak için üretilen figürleri kaydedin:
+* Save generated figures to a file:
+
   ```python
   from word_alignment.edit_distance_tools import plot_manual_table
 
   fig = plot_manual_table(result, show=False)
   fig.savefig("manual_table.png", dpi=200)
   ```
-- `loop_similarity_demo.demonstrate_loop_similarity` fonksiyonu kendi kelimelerinizle
-  çağrıldığında aynı öyküyü yeni örnek için tekrar oluşturur.
+* The `loop_similarity_demo.demonstrate_loop_similarity` function can be called with your own words to recreate the same sequence for new examples.
 
-## İlgili Dokümanlar
+## Related Documents
 
-- [study.md](./study.md): Kavram özeti, kod akışı ve örnek çözümler.
-- Repodaki kök [README](../README.md): Farklı modüller eklenirken izlenecek
-  genel kuralları listeler.
-
-Sorularınız veya geliştirme önerileriniz için ders tartışma kanallarını
-kullanabilir, görselleri özelleştirmek adına pull request açabilirsiniz.
+* [study.md](./study.md): Concept summary, code flow, and example solutions.
