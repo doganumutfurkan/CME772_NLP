@@ -18,7 +18,7 @@ layout.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -248,6 +248,28 @@ def _backtrace(
     return path, operations
 
 
+def _orient_operations_for_display(
+    operations: List[EditOperation],
+    source_length: int,
+) -> List[EditOperation]:
+    """Flip the backtrace vertically so it starts top-right like class notes."""
+
+    arrow_map = {"↖": "↙", "↑": "↓", "←": "←"}
+    oriented: List[EditOperation] = []
+
+    for op in operations:
+        oriented.append(
+            replace(
+                op,
+                arrow=arrow_map.get(op.arrow, op.arrow),
+                to_cell=(source_length - op.to_cell[0], op.to_cell[1]),
+                from_cell=(source_length - op.from_cell[0], op.from_cell[1]),
+            )
+        )
+
+    return oriented
+
+
 def plot_manual_table(
     result: EditDistanceResult,
     *,
@@ -357,6 +379,7 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
         "del": "#f1c40f",
         "ins": "#9b59b6",
     }
+    oriented_operations = _orient_operations_for_display(result.operations, len(result.source))
 
     for (cell_i, cell_j), op in zip(result.path[:-1], result.operations):
         edge_color = highlight_palette.get(op.kind, "#2980b9")
@@ -454,7 +477,8 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
         "• Nested loops fill the grid: outer loop over str1, inner loop over str2.",
         "• At each cell choose min of ← insert, ↑ delete, ↖ substitute/match.",
         "• Costs — insert: 1, delete: 1, substitute: 2, match: 0.",
-        "• Backtrace follows coloured borders from bottom-right to the origin.",
+        "• Heatmap backtrace: coloured borders trace from bottom-right to (0, 0).",
+        "• Table narration flips the path (top-right → bottom-left) like in class.",
         "• Arrow direction encodes the operation that minimised the cost.",
     ]
     ax_notes.text(
@@ -470,7 +494,7 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
         ax_notes.text(
             0,
             1 - 0.08 * len(notes_lines) - 0.05,
-            "Backtrace steps (bottom-right → top-left):",
+            "Backtrace steps (top-right → bottom-left):",
             fontsize=11.5,
             fontweight="bold",
             va="top",
@@ -478,7 +502,7 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
         )
 
         y_cursor = 1 - 0.08 * len(notes_lines) - 0.12
-        for idx, op in enumerate(result.operations, start=1):
+        for idx, op in enumerate(oriented_operations, start=1):
             step_text = (
                 f"{idx}. {op.description} "
                 f"({op.arrow} {op.to_cell} → {op.from_cell}, cost {op.cost})"
@@ -520,26 +544,55 @@ def plot_operations_table(
     header = "Alignment Operations Overview (backtrace order)"
     ax.text(0.5, 0.95, header, ha="center", va="top", fontsize=12.5, fontweight="bold")
 
-    if result.operations:
+    oriented_ops = _orient_operations_for_display(result.operations, len(result.source))
+
+    if oriented_ops:
         table_rows = [
             [
                 idx,
                 op.action_label,
                 op.arrow,
-                f"{op.to_cell} → {op.from_cell}",
+                f"{op.to_cell}",
+                f"{op.from_cell}",
                 op.cost,
             ]
-            for idx, op in enumerate(result.operations, start=1)
+            for idx, op in enumerate(oriented_ops, start=1)
         ]
+        col_labels = [
+            "Step",
+            "Action",
+            "Move",
+            "Current cell",
+            "Next cell",
+            "Cost",
+        ]
+        col_widths = [0.1, 0.34, 0.1, 0.18, 0.18, 0.1]
         table = ax.table(
             cellText=table_rows,
-            colLabels=["Step", "Action", "Move", "Cells (from → to)", "Cost"],
+            colLabels=col_labels,
             loc="center",
             cellLoc="center",
+            colWidths=col_widths,
         )
-        table.scale(1.2, 2.1)
+        table.scale(1.0, 2.5)
         table.auto_set_font_size(False)
         table.set_fontsize(11)
+        table.auto_set_column_width(list(range(len(col_labels))))
+
+        for (row_idx, col_idx), cell in table.get_celld().items():
+            cell._text.set_fontsize(11)
+            if row_idx == 0:
+                cell.set_facecolor("#ecf0f1")
+                cell._text.set_weight("bold")
+            elif row_idx % 2 == 1:
+                cell.set_facecolor("#f8f9fa")
+
+            if col_idx == 1:
+                cell._text.set_ha("left")
+            else:
+                cell._text.set_ha("center")
+
+            cell._text.set_va("center")
     else:
         ax.text(
             0.5,
@@ -552,6 +605,15 @@ def plot_operations_table(
 
     summary = f"Final Edit Distance = {result.distance}"
     ax.text(0.5, 0.08, summary, ha="center", va="bottom", fontsize=11.5)
+    ax.text(
+        0.5,
+        0.02,
+        "Orientation: start at top-right, move left/down to reach bottom-left.",
+        ha="center",
+        va="bottom",
+        fontsize=10.5,
+        color="#2c3e50",
+    )
 
     if show:
         plt.show()

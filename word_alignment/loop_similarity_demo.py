@@ -65,7 +65,10 @@ def _plot_loop_story(result: EditDistanceResult, *, show: bool) -> plt.Figure:
         "",
         f"Final Edit Distance: {result.distance}",
         f"Normalised Similarity Score: {result.similarity_score:.2f}",
-        "Backtrace follows arrows from bottom-right to the origin to list edits.",
+        (
+            "Backtrace visuals highlight the optimal path; the table retells it "
+            "from the top-right corner down to the bottom-left like in class."
+        ),
     ]
 
     ax.text(
