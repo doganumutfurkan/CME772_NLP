@@ -1,45 +1,47 @@
 # CME772_NLP
 
-This project collects study materials and visualization tools for the CME772 Natural Language Processing course. The focus is on interactive exploration of weighted edit distance, alignment backtraces, and the programming patterns that implement them.
+CME772 Natural Language Processing dersine ait görsel materyaller, mini demolar ve
+çalışma notlarını tek bir yerde toplamak için hazırlanmış bir repo. Her çalışma
+konu odaklı kendi klasöründe yer alır; böylece ileride eklenecek projeler
+birbirini bozmadan geliştirilebilir.
 
-## Repository structure
+## İçerik Haritası
 
-- `word_alignment/`
-  - `edit_distance_tools.py`: Core module with dataclasses and helpers for computing weighted edit distance matrices, extracting backtraces, and rendering explanatory figures.
-  - `loop_similarity_demo.py`: Example script that imports the module to walk through the character-by-character loop, display the manual dynamic-programming table, and compare the classroom solution with a library implementation.
-  - `__init__.py`: Convenience exports so that notebooks or follow-up assignments can import the visualization and computation utilities with `from word_alignment import ...`.
-  - `readme.md`: Module-level notes that focus on alignment-specific visuals.
+| Dizin | Başlık | Açıklama |
+| ----- | ------ | -------- |
+| `word_alignment/` | Edit Distance ve Hizalama Görselleştirmeleri | Ağırlıklı edit distance hesabını, backtrace izleğini ve döngü tabanlı kod taslaklarını anlatan modül. |
+| *(yeni eklemeler)* | | Yeni konular eklendikçe her biri kendi dizininde README ve çalışma notlarıyla yer alacak. |
 
-## Getting started
+## Genel Kullanım
 
-1. **Install dependencies**
+1. **Bağımlılıkları kurun**
    - Python 3.9+
-   - `matplotlib`
-   - `numpy`
-   - `textdistance` (optional; used for the verification helper, but the module falls back to an internal implementation if it is unavailable.)
+   - Ortak kullanılan kütüphaneler: `matplotlib`, `numpy`
+   - Modül özelinde ek kütüphaneler ilgili klasörün README dosyasında listelenir
 
-2. **Run the demo**
-   ```bash
-   python -m word_alignment.loop_similarity_demo
-   ```
-   The script opens a sequence of Matplotlib figures that illustrate:
-   - The dynamic-programming grid with weights and annotated backtrace path.
-   - A step-by-step table that narrates each alignment move (deletion, insertion, substitution).
-   - A side-by-side comparison between the manual calculation and the `textdistance` library for cross-checking the final edit distance.
+2. **İlgili modül klasörüne geçin** ve README/çalışma notlarını inceleyin.
+   - Örneğin edit distance demosu için `word_alignment/` dizinine bakın.
+   - Çalıştırma komutları ve örnek çıktılar her modülün README’sinde adım adım açıklanır.
 
-## Key features
+3. **Figürler ve açıklamalar** konsola yazdırılmak yerine çoğunlukla Matplotlib
+   pencerelerinde gösterilir. Çizimler kapatılana kadar scriptler bekler.
 
-- **Classroom-oriented orientation**: Both the heatmap and manual table are oriented so the path travels from the top-right start cell to the bottom-left origin, matching the lecture walkthrough.
-- **Rich annotations**: Each visualization layers legends, cell highlights, and textual summaries to reinforce why each operation was chosen.
-- **Reusable computation layer**: The `EditDistanceComputation` dataclass separates the DP matrix calculation from the plotting routines, making it easy to reuse the logic in assignments or notebooks.
-- **Library verification**: The optional `LibraryDistanceCheck` helper demonstrates how to validate hand-worked solutions with an established NLP package.
+## Yeni Çalışmalar Eklemek İçin
 
-## Extending the materials
+- Her yeni konu için ayrı bir dizin açın (`language_models/`, `tokenization/` gibi).
+- Bu dizinin içerisinde en az bir `README.md` ve ihtiyaç varsa `study.md`
+  dokümanı bulunsun.
+- Modül içi Python paketlerini dışarıya açmak için `__init__.py` dosyası
+  ekleyebilir, tekrar kullanılabilir fonksiyonları burada listeleyebilirsiniz.
+- Ortak bağımlılıkların veya veri setlerinin nasıl edinileceği README’de
+  belirtilmelidir.
 
-- Swap in different words or cost configurations by instantiating `EditDistanceConfig` with new parameters.
-- Use the exported `build_alignment_figures` and `run_loop_similarity_demo` functions as templates for new lesson plans.
-- Incorporate the study notes in `study` for quick reminders about the algorithm and its NLP applications.
+## Yardımcı Dokümanlar
 
-## License
+- `word_alignment/README.md`: Edit distance modülünün kullanım talimatları ve
+  çıktı görsellerine dair notlar.
+- `word_alignment/study.md`: Edit distance ve hizalama konusunu örneklerle
+  açıklayan çalışma rehberi.
 
-The content is provided for educational use in CME772. Adapt it freely for personal study or classroom demonstrations.
+Katkılar ve geri bildirimler ders arkadaşlarıyla paylaşılabilir; yeni içerik
+önerileri için ilgili klasörde bir taslak oluşturmanız yeterli.
