@@ -1,4 +1,4 @@
-# Edit Distance Study Guide
+# Edit Distance Hakkında
 
 Bu doküman, `word_alignment` modülündeki araçların nasıl çalıştığını ve aynı zamanda edit distance gibi temel NLP kavramlarının ne ifade ettiğini özetler.
 
