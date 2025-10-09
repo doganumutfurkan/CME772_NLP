@@ -2,14 +2,41 @@
 
 from __future__ import annotations
 
+import os
+import sys
+from typing import TYPE_CHECKING
+
 import matplotlib.pyplot as plt
 
-from .edit_distance_tools import (
-    EditDistanceResult,
-    compute_edit_distance,
-    plot_manual_table,
-    plot_visual_walkthrough,
-)
+# ``loop_similarity_demo.py`` is sometimes launched directly with
+# ``python loop_similarity_demo.py`` from the directory that contains it.  In
+# that context ``__package__`` is ``None`` and relative imports (``from .foo``)
+# fail.  To keep the teaching material resilient, fall back to importing from
+# the parent directory when the module is executed as a script.
+if __package__ in {None, ""}:
+    PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
+    if PACKAGE_ROOT not in sys.path:
+        sys.path.insert(0, PACKAGE_ROOT)
+
+    from edit_distance_tools import (  # type: ignore[attr-defined]
+        EditDistanceResult,
+        compute_edit_distance,
+        plot_manual_table,
+        plot_visual_walkthrough,
+    )
+else:  # pragma: no cover - exercised when imported as part of the package
+    from .edit_distance_tools import (
+        EditDistanceResult,
+        compute_edit_distance,
+        plot_manual_table,
+        plot_visual_walkthrough,
+    )
+
+if TYPE_CHECKING:
+    # ``mypy``/``pyright`` should still understand the re-exported symbols.
+    from .edit_distance_tools import EditDistanceResult as _EditDistanceResult
+
+    EditDistanceResult = _EditDistanceResult
 
 
 def demonstrate_loop_similarity(str1: str, str2: str) -> None:
