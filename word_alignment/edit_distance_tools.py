@@ -350,32 +350,48 @@ def plot_manual_table(
 ):
     """Plot the raw DP grid that results from the nested-loop computation."""
 
-    dp_list = result.dp.tolist()
     m, n = len(result.source), len(result.target)
-    fig_width = 1.4 * (n + 2)
-    fig_height = 1.0 * (m + 2)
+    fig_width = 1.55 * (n + 3)
+    fig_height = 1.25 * (m + 3)
     fig, ax = plt.subplots(figsize=figsize or (fig_width, fig_height))
     ax.axis("off")
 
-    table = ax.table(
-        cellText=dp_list,
-        rowLabels=["_"] + list(result.source),
-        colLabels=["_"] + list(result.target),
-        cellLoc="center",
-        loc="center",
-    )
-    table.scale(1.15, 1.55)
+    # Build a teaching-friendly grid whose interior corresponds to the dynamic
+    # programming values while the surrounding row/column carry the characters
+    # exactly how they appear when the origin is placed in the bottom-left
+    # corner.  The final destination ``(m, n)`` therefore lives in the
+    # top-right just like the heatmap figure.
+    table_rows = m + 2
+    table_cols = n + 2
+    display_grid: List[List[str]] = [["" for _ in range(table_cols)] for _ in range(table_rows)]
+
+    for i in range(m + 1):
+        row_idx = m - i
+        display_grid[row_idx][0] = "_" if i == 0 else result.source[i - 1]
+        for j in range(n + 1):
+            col_idx = j + 1
+            display_grid[row_idx][col_idx] = str(int(result.dp[i, j]))
+
+    display_grid[-1][0] = ""  # bottom-left corner left blank for spacing
+    for j in range(n + 1):
+        col_idx = j + 1
+        display_grid[-1][col_idx] = "_" if j == 0 else result.target[j - 1]
+
+    table = ax.table(cellText=display_grid, cellLoc="center", loc="center")
     table.auto_set_font_size(False)
     table.set_fontsize(11)
 
-    # Emphasise the leading row labels so the source characters remain legible
-    # even when the table becomes large.  Matplotlib stores row headers at
-    # column ``-1`` for each data row, so we can selectively tweak their text
-    # properties without affecting the DP grid itself.
+    # Slightly enlarge the grid to provide breathing room while keeping the
+    # column that carries the source characters wide enough for easy reading.
+    table.scale(1.25, 1.35)
+
     for (row_idx, col_idx), cell in table.get_celld().items():
-        if col_idx == -1:
+        if col_idx == 0:
+            cell.set_text_props(fontsize=14, fontweight="bold")
+            cell.set_width(cell.get_width() * 1.65)
+        elif row_idx == table_rows - 1:
             cell.set_text_props(fontsize=13, fontweight="bold")
-        elif row_idx == -1:
+        elif row_idx == 0 and col_idx >= 1:
             cell.set_text_props(fontweight="bold")
 
     ax.set_title(
