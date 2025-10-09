@@ -1,51 +1,52 @@
-# Edit Distance Çalışma Rehberi
+# Edit Distance Study Guide
 
-Bu rehber, `word_alignment` modülündeki kodların nasıl çalıştığını ve edit
-distance kavramının temelini örnekler üzerinden açıklar. Tüm görseller derslerdeki
-"sağ üstten sol alta" izlenen backtrace yönüyle uyumludur.
+This guide explains how the code in the `word_alignment` module works and introduces the basics of the edit distance concept through examples. All visuals follow the classroom convention of tracing the backtrace path from the top-right to the bottom-left.
 
-## 1. Modül Bileşenleri
+## 1. Module Components
 
 ### 1.1 `compute_edit_distance`
-- İki kelime arasındaki ağırlıklı edit distance değerini hesaplar.
-- DP matrisini, seçilen okları (↖, ↑, ←) ve backtrace sırasında izlenen hücreleri
-  döndürür.
-- Varsayılan maliyetler: ekleme = 1, silme = 1, yerine koyma = 2.
+
+* Calculates the weighted edit distance between two words.
+* Returns the DP matrix, selected arrows (↖, ↑, ←), and the cells visited during backtrace.
+* Default costs: insertion = 1, deletion = 1, substitution = 2.
 
 ### 1.2 `plot_manual_table`
-- Matrisin derslerdeki kağıt düzenini taklit eden tabloyu oluşturur.
-- Kelimeler sol alt referansa göre yerleştirilir; sağ üst hücre hedef noktadır.
-- Hücre etiketleri üst üste binmesin diye genişletilmiş kutular kullanılır.
+
+* Generates a table layout that mimics the paper-style matrix used in lectures.
+* Words are placed relative to the bottom-left corner; the top-right cell is the target point.
+* Uses expanded boxes to prevent label overlap.
 
 ### 1.3 `plot_visual_walkthrough`
-- Heatmap, yön okları ve operasyon özet tablosunu aynı hikâye içerisinde sunar.
-- Backtrace yolu hücre sınırları ve çizgilerle güçlendirilir.
+
+* Presents the heatmap, direction arrows, and operation summary within the same narrative.
+* The backtrace path is emphasized using cell borders and connecting lines.
 
 ### 1.4 `compute_library_distance`
-- Varsa `textdistance` paketini kullanarak aynı ağırlıklarla doğrulama yapar.
-- Paket yoksa modülde bulunan yedek Levenshtein uygulaması çağrılır.
+
+* Uses the `textdistance` package for verification when available.
+* If unavailable, falls back to the internal Levenshtein implementation.
 
 ### 1.5 `loop_similarity_demo.demonstrate_loop_similarity`
-- Yukarıdaki tüm adımları tek komutla çalıştırır.
-- Ek bir figürde iç içe döngülerin sözde kodunu ve elde edilen skorları anlatır.
 
-## 2. Ağırlıklı Edit Distance Adımları
+* Executes all of the above steps with a single command.
+* Adds an extra figure illustrating the nested loop pseudo-code and resulting scores.
 
-Bir hücrenin değeri her zaman üç ihtimalin en küçüğüdür:
+## 2. Weighted Edit Distance Steps
 
-1. **↖ Diyagonal (Eşleşme / Yerine Koyma)**
-   - Karakterler aynıysa ek maliyet yoktur.
-   - Farklıysa `substitution_cost` eklenir.
-2. **↑ Yukarı (Silme)** – Kaynak kelimeden bir karakter çıkarılır.
-3. **← Sol (Ekleme)** – Hedef kelimeye bir karakter eklenir.
+The value of each cell is always the minimum of three possible moves:
 
-Başlangıç satırı ve sütunu, boş diziyi diğer kelimeye dönüştürmenin maliyetlerini
-(`i * deletion_cost`, `j * insertion_cost`) içerir. Backtrace her zaman sağ üst
-hücreden başlar, sol alt köşede biter.
+1. **↖ Diagonal (Match / Substitution)**
 
-## 3. Örnek 1 – "kitten" → "sitting"
+   * No additional cost if characters match.
+   * Adds `substitution_cost` if they differ.
+2. **↑ Up (Deletion)** – Removes a character from the source word.
+3. **← Left (Insertion)** – Adds a character to the target word.
 
-Bu örnek demo scriptinin varsayılan kelimeleridir.
+The first row and column represent the cost of transforming an empty string into the other word (`i * deletion_cost`, `j * insertion_cost`). The backtrace always starts from the top-right cell and ends in the bottom-left corner.
+
+## 3. Example 1 – "kitten" → "sitting"
+
+This example uses the default words from the demo script.
 
 ```python
 from word_alignment.edit_distance_tools import compute_edit_distance
@@ -55,42 +56,41 @@ print(result.distance)  # 5
 print(result.similarity_score)  # 0.29...
 ```
 
-### 3.1 Anahtar Hücreler
+### 3.1 Key Cells
 
-| Hücre (i, j) | Karakterler | Seçilen Hareket | Açıklama |
-| ------------ | ----------- | ---------------- | -------- |
-| (1, 1) | `k` vs `s` | ↖ Yerine koyma | `k → s` maliyeti 2, diğer seçeneklerden daha ucuzdur. |
-| (3, 4) | `t` vs `t` | ↖ Eşleşme | Karakterler aynı, ek maliyet yok. |
-| (6, 7) | `n` vs `g` | ↑ Silme | `n` harfi hedefte yok, silmek toplam maliyeti düşürür. |
+| Cell (i, j) | Characters | Selected Move  | Explanation                                             |
+| ----------- | ---------- | -------------- | ------------------------------------------------------- |
+| (1, 1)      | `k` vs `s` | ↖ Substitution | `k → s` cost 2, cheaper than other options.             |
+| (3, 4)      | `t` vs `t` | ↖ Match        | Characters are the same, no cost added.                 |
+| (6, 7)      | `n` vs `g` | ↑ Deletion     | `n` does not appear in target, deletion minimizes cost. |
 
-### 3.2 Backtrace Öyküsü
+### 3.2 Backtrace Story
 
-1. **Başlangıç:** Sağ üst hücre `(6, 7)` → toplam maliyet `5`.
-2. **Silme:** `n` karakteri hedefte olmadığı için silinir (↑ hareketi).
-3. **Yerine koyma:** `e → i` dönüşümü için ↖ adımı ve 2 maliyet eklenir.
-4. **Ekleme:** Hedefte fazladan `g` olduğu için ← hareketiyle eklenir.
-5. **Eşleşmeler:** Kalan `itt` bölümü ↖ ile hatasız ilerler.
-6. **Bitiş:** Sol alt köşede `(0, 0)` noktasına ulaşılır.
+1. **Start:** Top-right cell `(6, 7)` → total cost `5`.
+2. **Deletion:** Character `n` removed (↑ move).
+3. **Substitution:** `e → i` performed (↖ move, cost 2).
+4. **Insertion:** Extra `g` in target added (← move).
+5. **Matches:** Remaining `itt` sequence progresses diagonally (↖) without errors.
+6. **End:** Arrives at bottom-left corner `(0, 0)`.
 
-`plot_visual_walkthrough(result)` çağrısı bu adımları hücre kenarlarıyla
-belirginleştirir, `plot_manual_table(result)` ise tabloyu geniş sütunlarla tekrar
-yapılandırır.
+Calling `plot_visual_walkthrough(result)` highlights these steps using borders and lines, while `plot_manual_table(result)` rebuilds the table with extended columns.
 
-## 4. Örnek 2 – Kısa Kelimelerle Elle Çalışma
+## 4. Example 2 – Manual Practice with Short Words
 
-"ad" → "sad" dönüşümünü elinizle hesaplamak için şu adımları izleyin:
+Follow these steps to calculate the transformation of "ad" → "sad" manually:
 
-1. Başlangıç satırı ve sütununu doldurun:
-   - `dp[0][0] = 0`
-   - `dp[0][1] = 1` (s ekleme)
-   - `dp[0][2] = 2` (s + a ekleme)
-   - `dp[1][0] = 1` (a silme)
-   - `dp[2][0] = 2` (a + d silme)
-2. İç döngülerde her hücreyi hesaplayın:
+1. Fill the first row and column:
+
+   * `dp[0][0] = 0`
+   * `dp[0][1] = 1` (insert s)
+   * `dp[0][2] = 2` (insert s + a)
+   * `dp[1][0] = 1` (delete a)
+   * `dp[2][0] = 2` (delete a + d)
+2. Compute each cell within nested loops:
 
 ```python
 str1, str2 = "ad", "sad"
-# dp tablosu başlangıç değerleriyle (0. satır/sütun) doldurulmuş varsayılıyor.
+# dp table initialized with row 0 and column 0 values.
 for i in range(1, len(str1) + 1):
     for j in range(1, len(str2) + 1):
         cost_sub = dp[i-1][j-1] + (0 if str1[i-1] == str2[j-1] else 2)
@@ -99,16 +99,18 @@ for i in range(1, len(str1) + 1):
         dp[i][j] = min(cost_sub, cost_del, cost_ins)
 ```
 
-3. Sağ üst hücre `(2, 3)` değeri `2` çıkar; backtrace adımları:
-   - `d` ile `d` eşleşir (↖).
-   - `a` ile `a` eşleşir (↖).
-   - Sol üst köşeye gelmek için başa `s` eklenir (←).
+3. The top-right cell `(2, 3)` value is `2`; backtrace steps:
 
-Bu kısa örnek, daha uzun kelimelerdeki davranışı kavramak için pratik sağlar.
+   * `d` matches `d` (↖).
+   * `a` matches `a` (↖).
+   * `s` added at the start (←).
 
-## 5. Kod Çalıştırma Önerileri
+This short example helps understand the behavior in longer word pairs.
 
-- Demo sırasında kullanılan figürleri kaydetmek için:
+## 5. Code Execution Tips
+
+* To save figures generated during demos:
+
   ```python
   from word_alignment.edit_distance_tools import compute_edit_distance, plot_manual_table
 
@@ -116,27 +118,25 @@ Bu kısa örnek, daha uzun kelimelerdeki davranışı kavramak için pratik sağ
   fig = plot_manual_table(result, show=False)
   fig.savefig("flaw_vs_lawn_manual.png", dpi=200)
   ```
-- Farklı ağırlıklar denemek istiyorsanız fonksiyona parametre gönderin:
+* To test with different weights, pass parameters:
+
   ```python
   compute_edit_distance("kitten", "sitting", substitution_cost=1)
   ```
 
-## 6. NLP’de Kullanım Senaryoları
+## 6. Use Cases in NLP
 
-- **Yazım Düzeltme:** Kullanıcı girdisini sözlükteki en yakın kelimeye dönüştürür.
-- **Otomatik Değerlendirme:** Öğrenci cevaplarını referans çözümlerle karşılaştırır.
-- **Makine Çevirisi Analizi:** Çeviri çıktısı ile altın standart arasındaki farkı
-  puanlamak için kullanılabilir.
-- **Ses Tanıma / OCR:** Model çıktılarının doğruluğunu değerlendirmek için edit
-  distance kullanılır.
+* **Spell Correction:** Converts user input into the closest word in a dictionary.
+* **Automatic Grading:** Compares student answers against reference solutions.
+* **Machine Translation Evaluation:** Measures difference between translation output and gold standard.
+* **Speech Recognition / OCR:** Evaluates model accuracy using edit distance.
 
-## 7. Çalışma Stratejileri
+## 7. Study Strategies
 
-1. Önce kısa kelimelerle tabloyu kağıt üzerinde doldurun.
-2. Her adımı neden seçtiğinizi açıklayan küçük notlar ekleyin.
-3. Modüldeki görselleri inceleyip kendi hesabınızla karşılaştırın.
-4. `compute_library_distance` çıktısı ile manuel sonucu yan yana kontrol edin.
-5. Ders notlarındaki yönlendirmeye (sağ üst → sol alt) uygun çizimler yapmayı
-   alışkanlık haline getirin.
+1. Start by filling short word tables manually on paper.
+2. Add short notes explaining why each move was selected.
+3. Compare your hand calculations with the module's visuals.
+4. Verify results side-by-side with `compute_library_distance` outputs.
+5. Practice drawing diagrams from top-right → bottom-left, following the lecture’s convention.
 
-Başarılar ve iyi çalışmalar!
+Good luck and happy studying!
