@@ -8,6 +8,7 @@ This folder contains tools designed to reproduce the edit distance tables manual
 * **`loop_similarity_demo.py`** – Example script demonstrating the loop-based explanation, manual table, and library validation sequentially.
 * **`__init__.py`** – Contains shortcut imports for the classes and functions exposed by the module.
 * **`study.md`** – A study guide explaining the edit distance concept, related code, and examples step by step.
+* **`çalışma_notları.md`** – Türkçe açıklamalar içeren ders notları.
 
 ## Installation
 
