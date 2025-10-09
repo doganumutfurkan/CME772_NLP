@@ -342,7 +342,11 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
     )
 
     ax_heatmap = fig.add_subplot(gs[0, 0])
-    im = ax_heatmap.imshow(dp, cmap=plt.cm.Blues, origin="upper")
+    # Flip the vertical orientation so the highlighted path travels from the
+    # top-right towards the bottom-left just like it is traced during class
+    # exercises.  ``origin='lower'`` keeps the numeric grid intact while
+    # repositioning the visual start cell in the upper corner.
+    im = ax_heatmap.imshow(dp, cmap=plt.cm.Blues, origin="lower")
 
     text_bbox = dict(boxstyle="round,pad=0.25", facecolor="white", alpha=0.82, edgecolor="none")
     move_colors = {
@@ -414,24 +418,24 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
     ax_heatmap.scatter([start_col], [start_row], color="#d35400", s=90, marker="*", zorder=6)
     ax_heatmap.scatter([end_col], [end_row], color="#2ecc71", s=70, marker="s", zorder=6)
     ax_heatmap.text(
-        start_col - 0.25,
-        start_row - 0.25,
-        "Start (m,n)",
+        start_col - 0.3,
+        start_row + 0.28,
+        "Start (m,n) → top-right",
         color="#d35400",
         fontsize=10,
         weight="bold",
         ha="right",
-        va="top",
+        va="bottom",
     )
     ax_heatmap.text(
         end_col + 0.35,
-        end_row + 0.3,
-        "Finish (0,0)",
+        end_row - 0.35,
+        "Finish (0,0) → bottom-left",
         color="#27ae60",
         fontsize=10,
         weight="bold",
         ha="left",
-        va="bottom",
+        va="top",
     )
 
     ax_heatmap.set_xticks(np.arange(n + 1))
@@ -477,8 +481,8 @@ def _create_heatmap_figure(result: EditDistanceResult) -> plt.Figure:
         "• Nested loops fill the grid: outer loop over str1, inner loop over str2.",
         "• At each cell choose min of ← insert, ↑ delete, ↖ substitute/match.",
         "• Costs — insert: 1, delete: 1, substitute: 2, match: 0.",
-        "• Heatmap backtrace: coloured borders trace from bottom-right to (0, 0).",
-        "• Table narration flips the path (top-right → bottom-left) like in class.",
+        "• Heatmap backtrace now begins at the top-right and ends bottom-left.",
+        "• Table narration matches the class path (top-right → bottom-left).",
         "• Arrow direction encodes the operation that minimised the cost.",
     ]
     ax_notes.text(
