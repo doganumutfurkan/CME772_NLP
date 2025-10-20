@@ -7,6 +7,7 @@ A repository prepared to collect visual materials, mini demos, and study notes f
 | Directory         | Title                                      | Description                                                                                                        |
 | ----------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
 | `word_alignment/` | Edit Distance and Alignment Visualizations | A module demonstrating weighted edit distance computation, backtrace visualization, and loop-based code templates. |
+| `shannon_game_perplexity_backoff_interpolation/` | Shannon Game, Perplexity, and Smoothing | An educational mini-project that illustrates core N-gram language modeling concepts—such as Shannon sampling, perplexity, and smoothing—through concise, well-commented Python modules designed for learning and experimentation. |
 | *(new additions)* |                                            | As new topics are added, each will appear in its own directory with a README and study notes.                      |
 
 ## General Usage
